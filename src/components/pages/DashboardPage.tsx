@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, TrendingUp, Target, Zap, Clock, Award, Users, Activity, BarChart3, Play, CheckCircle, ArrowRight, Siren as Fire, Droplets, Moon, Sun, Wind, Heart, Timer, MapPin, Star, ChevronRight, Plus, Bell, Settings, Dumbbell, Apple, Coffee } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from 'recharts';
+import { Calendar, TrendingUp, Target, Zap, Clock, Award, Users, Activity, BarChart3, Play, CheckCircle, ArrowRight, Fire, Droplets, Moon, Sun, Wind, Heart, Timer, MapPin, Star, ChevronRight, Plus, Bell, Settings, Dumbbell, Apple, Coffee, Brain, Shield, Smartphone, Camera, Share2, Trophy, Medal, Crown, Gift, Flame, ThumbsUp, MessageCircle, Eye, TrendingDown, AlertCircle, RefreshCw, Download, Edit, MoreHorizontal, ChevronDown, ChevronUp, X, Volume2, Headphones, Wifi, Battery, Signal } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell, BarChart, Bar, RadialBarChart, RadialBar } from 'recharts';
+import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
 import { useApp } from '../../context/AppContext';
 import Layout from '../Layout';
 
@@ -8,11 +9,16 @@ const DashboardPage: React.FC = () => {
   const { userProfile, isPro, setCurrentPage, workoutSessions, achievements } = useApp();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedTimeframe, setSelectedTimeframe] = useState<'today' | 'week' | 'month' | 'year'>('week');
+  const [showQuickActions, setShowQuickActions] = useState(false);
+  const [activeWidget, setActiveWidget] = useState<string | null>(null);
   const [weatherData, setWeatherData] = useState({
     temperature: 24,
     condition: 'sunny',
     humidity: 65,
-    windSpeed: 12
+    windSpeed: 12,
+    uvIndex: 6,
+    airQuality: 'Good'
   });
 
   useEffect(() => {
@@ -20,16 +26,26 @@ const DashboardPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Mock data for enhanced dashboard
+  // Enhanced mock data
   const todayStats = {
     workoutCompleted: true,
     caloriesBurned: 420,
+    caloriesGoal: 500,
     waterIntake: 7,
+    waterGoal: 8,
     sleepHours: 7.8,
+    sleepGoal: 8,
     steps: 12420,
+    stepsGoal: 10000,
     heartRate: 72,
+    heartRateZone: 'Resting',
     activeMinutes: 45,
-    workoutStreak: 15
+    activeGoal: 60,
+    workoutStreak: 15,
+    mood: 'Great',
+    energy: 85,
+    stress: 25,
+    recovery: 92
   };
 
   const weeklyProgress = {
@@ -38,23 +54,33 @@ const DashboardPage: React.FC = () => {
     averageRating: 4.6,
     totalMinutes: 285,
     caloriesBurned: 1850,
-    consistency: 83
+    consistency: 83,
+    improvement: 12,
+    personalRecords: 3
   };
 
   const weeklyData = [
-    { day: 'Seg', calories: 380, duration: 45, completed: true },
-    { day: 'Ter', calories: 420, duration: 50, completed: true },
-    { day: 'Qua', calories: 0, duration: 0, completed: false },
-    { day: 'Qui', calories: 390, duration: 42, completed: true },
-    { day: 'Sex', calories: 450, duration: 55, completed: true },
-    { day: 'Sáb', calories: 210, duration: 25, completed: true },
-    { day: 'Dom', calories: 0, duration: 0, completed: false },
+    { day: 'Seg', calories: 380, duration: 45, completed: true, mood: 4, energy: 80, steps: 8500 },
+    { day: 'Ter', calories: 420, duration: 50, completed: true, mood: 5, energy: 90, steps: 12000 },
+    { day: 'Qua', calories: 0, duration: 0, completed: false, mood: 3, energy: 60, steps: 5000 },
+    { day: 'Qui', calories: 390, duration: 42, completed: true, mood: 4, energy: 85, steps: 9500 },
+    { day: 'Sex', calories: 450, duration: 55, completed: true, mood: 5, energy: 95, steps: 15000 },
+    { day: 'Sáb', calories: 210, duration: 25, completed: true, mood: 4, energy: 75, steps: 7000 },
+    { day: 'Dom', calories: 0, duration: 0, completed: false, mood: 3, energy: 70, steps: 4500 },
   ];
 
   const nutritionData = [
-    { name: 'Proteína', value: 85, target: 120, color: '#1DB954' },
-    { name: 'Carboidratos', value: 180, target: 275, color: '#3b82f6' },
-    { name: 'Gorduras', value: 55, target: 73, color: '#f59e0b' },
+    { name: 'Proteína', value: 85, target: 120, color: '#1DB954', percentage: 71 },
+    { name: 'Carboidratos', value: 180, target: 275, color: '#3b82f6', percentage: 65 },
+    { name: 'Gorduras', value: 55, target: 73, color: '#f59e0b', percentage: 75 },
+    { name: 'Fibras', value: 18, target: 25, color: '#8b5cf6', percentage: 72 },
+  ];
+
+  const bodyMetrics = [
+    { name: 'Peso', value: 76.9, change: -1.6, unit: 'kg', trend: 'down', target: 75 },
+    { name: 'Gordura', value: 17.0, change: -1.2, unit: '%', trend: 'down', target: 15 },
+    { name: 'Músculo', value: 65.2, change: +0.8, unit: 'kg', trend: 'up', target: 67 },
+    { name: 'Água', value: 58.5, change: +0.3, unit: '%', trend: 'up', target: 60 },
   ];
 
   const upcomingWorkouts = [
@@ -66,7 +92,9 @@ const DashboardPage: React.FC = () => {
       type: 'Cardio',
       difficulty: 'Alto',
       exercises: ['Burpees', 'Jump squats', 'Mountain climbers'],
-      estimatedCalories: 350
+      estimatedCalories: 350,
+      equipment: 'Nenhum',
+      focus: 'Queima de gordura'
     },
     {
       id: '2',
@@ -76,11 +104,46 @@ const DashboardPage: React.FC = () => {
       type: 'Força',
       difficulty: 'Médio',
       exercises: ['Flexão', 'Barra fixa', 'Dips'],
-      estimatedCalories: 280
+      estimatedCalories: 280,
+      equipment: 'Peso corporal',
+      focus: 'Força e resistência'
     },
   ];
 
   const recentAchievements = achievements.filter(a => a.unlockedAt).slice(0, 3);
+
+  const socialFeed = [
+    {
+      id: '1',
+      user: 'Maria Silva',
+      action: 'completou',
+      target: 'Treino HIIT Intenso',
+      time: '2h',
+      likes: 12,
+      comments: 3,
+      avatar: '👩‍💼'
+    },
+    {
+      id: '2',
+      user: 'João Santos',
+      action: 'atingiu',
+      target: '30 dias consecutivos',
+      time: '4h',
+      likes: 25,
+      comments: 8,
+      avatar: '👨‍💻'
+    },
+    {
+      id: '3',
+      user: 'Ana Costa',
+      action: 'perdeu',
+      target: '2kg este mês',
+      time: '6h',
+      likes: 18,
+      comments: 5,
+      avatar: '👩‍🎓'
+    }
+  ];
 
   const quickActions = [
     {
@@ -98,19 +161,40 @@ const DashboardPage: React.FC = () => {
       action: () => setCurrentPage('nutrition'),
     },
     {
-      title: 'Ver Progresso',
-      description: 'Acompanhar evolução',
+      title: 'Medir Progresso',
+      description: 'Peso e medidas',
       icon: BarChart3,
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
       action: () => setCurrentPage('progress'),
     },
     {
-      title: 'Comunidade',
-      description: 'Conectar-se',
-      icon: Users,
+      title: 'Tirar Foto',
+      description: 'Progresso visual',
+      icon: Camera,
       color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+      action: () => setCurrentPage('progress'),
+    },
+    {
+      title: 'Compartilhar',
+      description: 'Na comunidade',
+      icon: Share2,
+      color: 'bg-gradient-to-r from-pink-500 to-pink-600',
       action: () => setCurrentPage('community'),
     },
+    {
+      title: 'Baixar PDF',
+      description: 'Plano completo',
+      icon: Download,
+      color: 'bg-gradient-to-r from-indigo-500 to-indigo-600',
+      action: () => setCurrentPage('pdf'),
+    },
+  ];
+
+  const healthMetrics = [
+    { name: 'Frequência Cardíaca', value: 72, unit: 'bpm', status: 'normal', icon: Heart, color: 'text-red-500' },
+    { name: 'Pressão Arterial', value: '120/80', unit: 'mmHg', status: 'normal', icon: Activity, color: 'text-blue-500' },
+    { name: 'Saturação O2', value: 98, unit: '%', status: 'excelente', icon: Wind, color: 'text-green-500' },
+    { name: 'Temperatura', value: 36.5, unit: '°C', status: 'normal', icon: Sun, color: 'text-yellow-500' },
   ];
 
   const getGreeting = () => {
@@ -125,6 +209,26 @@ const DashboardPage: React.FC = () => {
       case 'sunny': return <Sun className="w-6 h-6 text-yellow-500" />;
       case 'cloudy': return <Wind className="w-6 h-6 text-gray-500" />;
       default: return <Sun className="w-6 h-6 text-yellow-500" />;
+    }
+  };
+
+  const getMoodEmoji = (mood: string) => {
+    switch (mood) {
+      case 'Great': return '😄';
+      case 'Good': return '😊';
+      case 'Okay': return '😐';
+      case 'Bad': return '😔';
+      default: return '😊';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'excelente': return 'text-green-500';
+      case 'normal': return 'text-blue-500';
+      case 'atenção': return 'text-yellow-500';
+      case 'crítico': return 'text-red-500';
+      default: return 'text-gray-500';
     }
   };
 
@@ -156,16 +260,20 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Layout title={`${getGreeting()}, ${userProfile.nome}! 👋`}>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Enhanced Welcome Section */}
+      <div className="max-w-8xl mx-auto px-4 py-8">
+        {/* Enhanced Header Section */}
         <div className="mb-8">
           <div className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] rounded-3xl p-8 text-white relative overflow-hidden">
+            {/* Background Elements */}
             <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
             <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-xl p-3">
               <div className="flex items-center space-x-2 text-sm">
                 {getWeatherIcon()}
-                <span>{weatherData.temperature}°C</span>
+                <div>
+                  <div className="font-semibold">{weatherData.temperature}°C</div>
+                  <div className="text-xs text-green-100">{weatherData.condition}</div>
+                </div>
               </div>
             </div>
             
@@ -181,14 +289,18 @@ const DashboardPage: React.FC = () => {
                       : 'Pronto para arrasar no treino de hoje?'
                     }
                   </p>
-                  <div className="flex items-center space-x-4 text-green-100">
-                    <div className="flex items-center space-x-1">
-                      <Fire className="w-4 h-4" />
-                      <span className="text-sm">{todayStats.workoutStreak} dias consecutivos</span>
+                  <div className="flex items-center space-x-6 text-green-100">
+                    <div className="flex items-center space-x-2">
+                      <Fire className="w-5 h-5" />
+                      <span className="font-medium">{todayStats.workoutStreak} dias consecutivos</span>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm">{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <div className="flex items-center space-x-2">
+                      <Clock className="w-5 h-5" />
+                      <span className="font-medium">{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl">{getMoodEmoji(todayStats.mood)}</span>
+                      <span className="font-medium">Humor: {todayStats.mood}</span>
                     </div>
                   </div>
                 </div>
@@ -196,46 +308,102 @@ const DashboardPage: React.FC = () => {
                 <div className="text-center lg:text-right">
                   <div className="text-3xl font-bold mb-1">{weeklyProgress.workoutsCompleted}/{weeklyProgress.totalWorkouts}</div>
                   <div className="text-green-100 mb-2">treinos esta semana</div>
-                  <div className="w-full lg:w-32 bg-white/20 rounded-full h-2">
+                  <div className="w-full lg:w-32 bg-white/20 rounded-full h-3">
                     <div 
-                      className="bg-white h-2 rounded-full transition-all duration-500"
+                      className="bg-white h-3 rounded-full transition-all duration-500"
                       style={{ width: `${(weeklyProgress.workoutsCompleted / weeklyProgress.totalWorkouts) * 100}%` }}
                     />
+                  </div>
+                  <div className="text-sm text-green-100 mt-2">
+                    +{weeklyProgress.improvement}% vs semana passada
                   </div>
                 </div>
               </div>
 
               {/* Enhanced Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
                   <Fire className="w-6 h-6 mx-auto mb-2" />
                   <div className="text-xl font-bold">{todayStats.caloriesBurned}</div>
                   <div className="text-xs text-green-100">calorias</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${(todayStats.caloriesBurned / todayStats.caloriesGoal) * 100}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
                   <Droplets className="w-6 h-6 mx-auto mb-2" />
-                  <div className="text-xl font-bold">{todayStats.waterIntake}/8</div>
+                  <div className="text-xl font-bold">{todayStats.waterIntake}/{todayStats.waterGoal}</div>
                   <div className="text-xs text-green-100">copos água</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${(todayStats.waterIntake / todayStats.waterGoal) * 100}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
                   <Moon className="w-6 h-6 mx-auto mb-2" />
                   <div className="text-xl font-bold">{todayStats.sleepHours}h</div>
                   <div className="text-xs text-green-100">sono</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${(todayStats.sleepHours / todayStats.sleepGoal) * 100}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
                   <Activity className="w-6 h-6 mx-auto mb-2" />
                   <div className="text-xl font-bold">{todayStats.steps.toLocaleString()}</div>
                   <div className="text-xs text-green-100">passos</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${Math.min((todayStats.steps / todayStats.stepsGoal) * 100, 100)}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
                   <Heart className="w-6 h-6 mx-auto mb-2" />
                   <div className="text-xl font-bold">{todayStats.heartRate}</div>
                   <div className="text-xs text-green-100">bpm</div>
+                  <div className="text-xs text-green-100 mt-1">{todayStats.heartRateZone}</div>
                 </div>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
                   <Timer className="w-6 h-6 mx-auto mb-2" />
                   <div className="text-xl font-bold">{todayStats.activeMinutes}</div>
                   <div className="text-xs text-green-100">min ativo</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${(todayStats.activeMinutes / todayStats.activeGoal) * 100}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
+                  <Brain className="w-6 h-6 mx-auto mb-2" />
+                  <div className="text-xl font-bold">{todayStats.energy}%</div>
+                  <div className="text-xs text-green-100">energia</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${todayStats.energy}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center hover:bg-white/30 transition-colors cursor-pointer">
+                  <Shield className="w-6 h-6 mx-auto mb-2" />
+                  <div className="text-xl font-bold">{todayStats.recovery}%</div>
+                  <div className="text-xs text-green-100">recuperação</div>
+                  <div className="w-full bg-white/20 rounded-full h-1 mt-2">
+                    <div 
+                      className="bg-white h-1 rounded-full"
+                      style={{ width: `${todayStats.recovery}%` }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -243,26 +411,39 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Enhanced Quick Actions */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8">
-          {quickActions.map((action, index) => (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-[#1B1B1B]">Ações Rápidas</h2>
             <button
-              key={index}
-              onClick={action.action}
-              className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-50 hover:shadow-lg transition-all transform hover:-translate-y-1"
+              onClick={() => setShowQuickActions(!showQuickActions)}
+              className="flex items-center space-x-2 text-[#1DB954] hover:text-[#1ed760] font-medium"
             >
-              <div className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                <action.icon className="w-7 h-7 text-white" />
-              </div>
-              <h3 className="font-bold text-[#1B1B1B] mb-1 text-left">{action.title}</h3>
-              <p className="text-sm text-gray-600 text-left">{action.description}</p>
-              <ChevronRight className="w-4 h-4 text-gray-400 mt-2 group-hover:text-[#1DB954] transition-colors" />
+              <span>{showQuickActions ? 'Menos' : 'Mais'} opções</span>
+              {showQuickActions ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
-          ))}
+          </div>
+          
+          <div className={`grid grid-cols-2 md:grid-cols-3 lg:grid-cols-${showQuickActions ? '6' : '4'} gap-4 transition-all duration-300`}>
+            {quickActions.slice(0, showQuickActions ? 6 : 4).map((action, index) => (
+              <button
+                key={index}
+                onClick={action.action}
+                className="group bg-white p-6 rounded-2xl shadow-sm border border-gray-50 hover:shadow-lg transition-all transform hover:-translate-y-1"
+              >
+                <div className={`w-14 h-14 ${action.color} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                  <action.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="font-bold text-[#1B1B1B] mb-1 text-left">{action.title}</h3>
+                <p className="text-sm text-gray-600 text-left">{action.description}</p>
+                <ChevronRight className="w-4 h-4 text-gray-400 mt-2 group-hover:text-[#1DB954] transition-colors" />
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
+        <div className="grid lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-3 space-y-8">
             {/* Enhanced Today's Workout */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
               <div className="flex items-center justify-between mb-6">
@@ -298,14 +479,22 @@ const DashboardPage: React.FC = () => {
                             </span>
                           </div>
                           
-                          <div className="flex items-center space-x-4 text-gray-600 mb-3">
-                            <div className="flex items-center space-x-1">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                            <div className="flex items-center space-x-2 text-gray-600">
                               <Clock className="w-4 h-4" />
                               <span className="text-sm">{workout.time} • {workout.duration}</span>
                             </div>
-                            <div className="flex items-center space-x-1">
+                            <div className="flex items-center space-x-2 text-gray-600">
                               <Fire className="w-4 h-4" />
                               <span className="text-sm">~{workout.estimatedCalories} cal</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <Dumbbell className="w-4 h-4" />
+                              <span className="text-sm">{workout.equipment}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 text-gray-600">
+                              <Target className="w-4 h-4" />
+                              <span className="text-sm">{workout.focus}</span>
                             </div>
                           </div>
                           
@@ -348,6 +537,16 @@ const DashboardPage: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-[#1B1B1B]">Progresso Semanal</h2>
                 <div className="flex items-center space-x-4">
+                  <select
+                    value={selectedTimeframe}
+                    onChange={(e) => setSelectedTimeframe(e.target.value as any)}
+                    className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-[#1DB954] focus:border-transparent outline-none"
+                  >
+                    <option value="today">Hoje</option>
+                    <option value="week">Esta semana</option>
+                    <option value="month">Este mês</option>
+                    <option value="year">Este ano</option>
+                  </select>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-[#1DB954]">{weeklyProgress.consistency}%</div>
                     <div className="text-sm text-gray-600">Consistência</div>
@@ -355,7 +554,7 @@ const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
                 <div className="text-center p-4 bg-gradient-to-br from-[#DFF5E1] to-[#1DB954]/10 rounded-xl">
                   <div className="text-2xl font-bold text-[#1DB954] mb-1">
                     {weeklyProgress.workoutsCompleted}
@@ -380,6 +579,12 @@ const DashboardPage: React.FC = () => {
                   </div>
                   <div className="text-sm text-gray-600">Avaliação</div>
                 </div>
+                <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl">
+                  <div className="text-2xl font-bold text-purple-600 mb-1">
+                    {weeklyProgress.personalRecords}
+                  </div>
+                  <div className="text-sm text-gray-600">Recordes</div>
+                </div>
               </div>
 
               <div className="h-64">
@@ -403,10 +608,21 @@ const DashboardPage: React.FC = () => {
                       fill="url(#colorGradient)"
                       strokeWidth={3}
                     />
+                    <Area 
+                      type="monotone" 
+                      dataKey="energy" 
+                      stroke="#3b82f6" 
+                      fill="url(#energyGradient)"
+                      strokeWidth={2}
+                    />
                     <defs>
                       <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#1DB954" stopOpacity={0.3}/>
                         <stop offset="95%" stopColor="#1DB954" stopOpacity={0.05}/>
+                      </linearGradient>
+                      <linearGradient id="energyGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
                       </linearGradient>
                     </defs>
                   </AreaChart>
@@ -414,7 +630,7 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Nutrition Overview */}
+            {/* Enhanced Nutrition Overview */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-[#1B1B1B]">Nutrição de Hoje</h2>
@@ -427,39 +643,92 @@ const DashboardPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-4 gap-6">
                 {nutritionData.map((nutrient, index) => (
                   <div key={index} className="text-center">
                     <div className="relative w-24 h-24 mx-auto mb-3">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle
-                          cx="48"
-                          cy="48"
-                          r="40"
-                          stroke="#e5e7eb"
-                          strokeWidth="8"
-                          fill="transparent"
-                        />
-                        <circle
-                          cx="48"
-                          cy="48"
-                          r="40"
-                          stroke={nutrient.color}
-                          strokeWidth="8"
-                          fill="transparent"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - (nutrient.value / nutrient.target))}`}
-                          className="transition-all duration-500"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-sm font-bold text-[#1B1B1B]">
-                          {Math.round((nutrient.value / nutrient.target) * 100)}%
-                        </span>
-                      </div>
+                      <CircularProgressbar
+                        value={nutrient.percentage}
+                        text={`${nutrient.percentage}%`}
+                        styles={buildStyles({
+                          textSize: '16px',
+                          pathColor: nutrient.color,
+                          textColor: '#1B1B1B',
+                          trailColor: '#e5e7eb',
+                          strokeLinecap: 'round',
+                        })}
+                      />
                     </div>
                     <div className="font-semibold text-[#1B1B1B]">{nutrient.name}</div>
                     <div className="text-sm text-gray-600">{nutrient.value}g de {nutrient.target}g</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {nutrient.value < nutrient.target ? 
+                        `Faltam ${nutrient.target - nutrient.value}g` : 
+                        'Meta atingida! 🎉'
+                      }
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 p-4 bg-gradient-to-r from-[#DFF5E1] to-[#1DB954]/10 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-[#1B1B1B] mb-1">Calorias Totais</h4>
+                    <p className="text-sm text-gray-600">1,850 de 2,200 kcal consumidas</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-[#1DB954]">84%</div>
+                    <div className="text-sm text-gray-600">da meta</div>
+                  </div>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                  <div 
+                    className="bg-gradient-to-r from-[#1DB954] to-[#1ed760] h-2 rounded-full"
+                    style={{ width: '84%' }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Body Metrics */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-[#1B1B1B]">Métricas Corporais</h2>
+                <button
+                  onClick={() => setCurrentPage('progress')}
+                  className="text-[#1DB954] hover:text-[#1ed760] font-medium flex items-center space-x-1"
+                >
+                  <span>Ver histórico</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {bodyMetrics.map((metric, index) => (
+                  <div key={index} className="bg-gray-50 rounded-xl p-4 text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <span className="font-bold text-[#1B1B1B] text-lg">{metric.value}</span>
+                      <span className="text-gray-600 text-sm ml-1">{metric.unit}</span>
+                      {metric.trend === 'up' ? (
+                        <TrendingUp className="w-4 h-4 text-green-500 ml-2" />
+                      ) : (
+                        <TrendingDown className="w-4 h-4 text-red-500 ml-2" />
+                      )}
+                    </div>
+                    <div className="text-sm font-medium text-gray-700 mb-1">{metric.name}</div>
+                    <div className={`text-xs font-medium ${
+                      metric.change > 0 ? 'text-green-500' : 'text-red-500'
+                    }`}>
+                      {metric.change > 0 ? '+' : ''}{metric.change}{metric.unit}
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
+                      <div 
+                        className="bg-[#1DB954] h-1 rounded-full"
+                        style={{ width: `${(metric.value / metric.target) * 100}%` }}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">Meta: {metric.target}{metric.unit}</div>
                   </div>
                 ))}
               </div>
@@ -468,6 +737,33 @@ const DashboardPage: React.FC = () => {
 
           {/* Enhanced Sidebar */}
           <div className="space-y-6">
+            {/* Health Metrics */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
+              <h3 className="text-lg font-semibold text-[#1B1B1B] mb-4">Saúde em Tempo Real</h3>
+              
+              <div className="space-y-4">
+                {healthMetrics.map((metric, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <metric.icon className={`w-5 h-5 ${metric.color}`} />
+                      <div>
+                        <div className="font-medium text-[#1B1B1B] text-sm">{metric.name}</div>
+                        <div className={`text-xs ${getStatusColor(metric.status)}`}>{metric.status}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-[#1B1B1B]">{metric.value}</div>
+                      <div className="text-xs text-gray-600">{metric.unit}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button className="w-full mt-4 px-4 py-2 text-[#1DB954] border border-[#1DB954] rounded-lg hover:bg-[#DFF5E1] transition-colors text-sm">
+                Conectar dispositivos
+              </button>
+            </div>
+
             {/* Enhanced Achievements */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
               <div className="flex items-center justify-between mb-6">
@@ -501,6 +797,45 @@ const DashboardPage: React.FC = () => {
               </div>
             </div>
 
+            {/* Social Feed */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[#1B1B1B]">Comunidade</h3>
+                <button
+                  onClick={() => setCurrentPage('community')}
+                  className="text-[#1DB954] hover:text-[#1ed760] text-sm font-medium"
+                >
+                  Ver mais
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {socialFeed.map((item) => (
+                  <div key={item.id} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#1DB954] to-[#1ed760] rounded-full flex items-center justify-center text-white text-sm">
+                      {item.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-[#1B1B1B]">
+                        <span className="font-semibold">{item.user}</span> {item.action} <span className="font-medium">{item.target}</span>
+                      </p>
+                      <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                        <span>{item.time}</span>
+                        <div className="flex items-center space-x-1">
+                          <ThumbsUp className="w-3 h-3" />
+                          <span>{item.likes}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <MessageCircle className="w-3 h-3" />
+                          <span>{item.comments}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Enhanced Calendar Widget */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50">
               <div className="flex items-center justify-between mb-4">
@@ -529,7 +864,7 @@ const DashboardPage: React.FC = () => {
                   const date = new Date();
                   date.setDate(date.getDate() - date.getDay() + i - 14);
                   const isToday = date.toDateString() === new Date().toDateString();
-                  const hasWorkout = Math.random() > 0.7; // Mock workout data
+                  const hasWorkout = Math.random() > 0.7;
                   
                   return (
                     <div
@@ -569,12 +904,20 @@ const DashboardPage: React.FC = () => {
                   <span>Vento</span>
                   <span className="font-semibold">{weatherData.windSpeed} km/h</span>
                 </div>
+                <div className="flex justify-between">
+                  <span>Índice UV</span>
+                  <span className="font-semibold">{weatherData.uvIndex}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Qualidade do Ar</span>
+                  <span className="font-semibold">{weatherData.airQuality}</span>
+                </div>
               </div>
               
               <div className="mt-4 p-3 bg-white/20 rounded-xl">
                 <div className="text-sm font-medium mb-1">💡 Dica do clima</div>
                 <div className="text-xs text-blue-100">
-                  Condições perfeitas para treinar ao ar livre!
+                  Condições perfeitas para treinar ao ar livre! Não esqueça do protetor solar.
                 </div>
               </div>
             </div>
@@ -584,7 +927,7 @@ const DashboardPage: React.FC = () => {
               <div className="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-2xl p-6 text-white">
                 <div className="text-center">
                   <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Zap className="w-6 h-6" />
+                    <Crown className="w-6 h-6" />
                   </div>
                   <h3 className="font-bold mb-2">Upgrade para Pro</h3>
                   <p className="text-yellow-100 text-sm mb-4">
